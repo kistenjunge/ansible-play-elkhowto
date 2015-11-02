@@ -1,0 +1,14 @@
+[service]
+192.168.60.4
+192.168.60.5
+
+[elk]
+192.168.60.6
+
+[multi:children]
+service
+elk
+
+[multi:vars]
+ansible_ssh_user=vagrant
+ansible_ssh_private_key_file=~/.vagrant.d/insecure_private_key

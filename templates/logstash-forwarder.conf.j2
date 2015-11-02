@@ -1,0 +1,20 @@
+{
+  # The network section covers network configuration :)
+  "network": {
+    "servers": [ "{{ logstash_server_ip }}:5043" ],
+    "ssl ca": "/etc/pki/tls/certs/logstash-forwarder.crt",
+    "timeout": 15
+  },
+
+  # The list of files configurations
+  "files": [
+    {
+      "paths": [
+        "/var/log/syslog",
+        "/var/log/auth.log"
+       ],
+      "fields": { "type": "syslog" }
+    }
+  ]
+}
+

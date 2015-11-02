@@ -26,12 +26,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     elk.vm.hostname = "log-elk.dev"
     elk.vm.box = "deb/wheezy-amd64"
     elk.vm.network "private_network", ip: "192.168.60.6"
-    
-#    elk.vm.provision "ansible" do |ansible|
-#      ansible.playbook = "provisioning/elk/playbook.yml"
-#      ansible.inventory_path = "provisioning/elk/inventory"
-#      ansible.sudo = true
-#    end
   end
 
 end

@@ -1,0 +1,58 @@
+---
+- hosts: elk
+  sudo: yes
+
+  pre_tasks:
+    - name: Update apt cache
+      apt: update_cache=yes cache_valid_time=86400
+
+    - name: Install additional packages required by ansible
+      apt: name={{ item }}
+      with_items:
+        - python-passlib
+
+  roles:
+    - oracle-java8
+    - elasticsearch
+    - kibana
+    - nginx
+    - logstash
+
+  tasks:
+    - name: configure nginx | create admin user for kibana access
+      htpasswd: path=/etc/nginx/htpasswd.users name={{ kibana_user }} password={{ kibana_password }}
+
+    - name: configure nginx | configure reverse proxy entry for kibana
+      copy: src=files/nginx_kibana_default dest=/etc/nginx/sites-available/default
+      notify: restart nginx
+
+    - name: configure logstash | create certificate directory
+      file: path=/etc/pki/tls/certs state=directory
+
+    - name: configure logstash | create private key directory
+      file: path=/etc/pki/tls/private state=directory
+
+    - name: configure logstash | prepare openssl for cert and key gen
+      lineinfile: >
+        dest=/etc/ssl/openssl.cnf
+        insertafter="\[\sv3_ca\s\]"
+        line='subjectAltName = IP: 192.168.60.6'
+
+    - name: configure logstash | generate certificate
+      shell: sudo openssl req -config /etc/ssl/openssl.cnf -x509 -days 3650 -batch -nodes -newkey rsa:2048 -keyout private/logstash-forwarder.key -out certs/logstash-forwarder.crt
+      args:
+        chdir: /etc/pki/tls
+        creates: /etc/pki/tls/private/logstash-forwarder.key 
+
+    - name: configure logstash | add initial logstash configuration files
+      copy: src=files/{{ item.src }} dest=/etc/logstash/conf.d/{{ item.dest }}
+      with_items:
+        - { src: logstash_lumberjack_input.conf, dest: 01-lumberjack-input.conf } 
+        - { src: logstash_syslog.conf, dest: 10-syslog.conf } 
+        - { src: logstash_lumberjack_output.conf, dest: 30-lumberjack-output.conf } 
+      notify: restart logstash
+
+  post_tasks:
+    - name: download logstash certificate
+      fetch: src=/etc/pki/tls/certs/logstash-forwarder.crt dest=special/logstash-forwarder.crt flat=yes
+

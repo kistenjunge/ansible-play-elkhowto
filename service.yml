@@ -1,0 +1,17 @@
+---
+- hosts: service
+  sudo: yes
+
+  roles:
+    - logstash-forwarder
+
+  tasks:
+    - name: configure logstash | ensure that certificate target folder exists
+      file: path=/etc/pki/tls/certs state=directory
+
+    - name: configure logstash | copy server certificate
+      copy: src=special/logstash-forwarder.crt dest=/etc/pki/tls/certs/logstash-forwarder.crt
+
+    - name: configure logstash | configure fowarder
+      template: src=templates/logstash-forwarder.conf.j2 dest=/etc/logstash-forwarder.conf
+      notify: restart logstash-forwarder

@@ -1,0 +1,13 @@
+---
+- name: add Logstash apt key
+  apt_key: url=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+
+- name: add Logstash repository
+  apt_repository: repo="deb http://packages.elastic.co/logstashforwarder/debian stable main"
+
+- name: install forwarder
+  apt: name=logstash-forwarder
+
+- name: start logstash forwarder
+  service: name=logstash-forwarder state=started enabled=yes
+

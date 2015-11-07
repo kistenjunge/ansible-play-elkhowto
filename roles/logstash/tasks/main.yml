@@ -1,0 +1,13 @@
+---
+- name: add Logstash apt key
+  apt_key: url=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+
+- name: add Logstash repository
+  apt_repository: repo="deb http://packages.elasticsearch.org/logstash/1.5/debian stable main"
+
+- name: install logstash
+  apt: name=logstash
+
+- name: make sure logstash has been started
+  service: name=logstash state=started enabled=yes
+

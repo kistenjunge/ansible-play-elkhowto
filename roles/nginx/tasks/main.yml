@@ -1,0 +1,10 @@
+---
+- name: install packages
+  apt: name={{ item }}
+  with_items:
+    - nginx
+    - apache2-utils
+
+- name: make sure service ist running
+  service: name=nginx state=started enabled=yes
+

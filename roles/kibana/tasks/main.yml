@@ -1,0 +1,36 @@
+---
+- name: add kibana group
+  group: name=kibana gid={{ kibana_user_gid }}
+
+- name: add kibana user
+  user: name=kibana group=kibana uid={{ kibana_user_gid }}
+
+- name: download version 4.1.2
+  get_url: url=https://download.elastic.co/kibana/kibana/kibana-4.1.2-linux-x64.tar.gz dest=/tmp
+
+- name: ensure target folder exists
+  file: path=/opt state=directory
+
+- name: extract archive
+  unarchive: copy=false src=/tmp/kibana-4.1.2-linux-x64.tar.gz dest=/tmp creates=/opt/kibana/README.txt
+
+- name: move content from extracted folder
+  shell: mv /tmp/kibana-4*/ /opt/kibana creates=/opt/kibana/README.txt
+
+- name: make kibana user the owner of the app folder
+  file: path=/opt/kibana group=kibana owner=kibana recurse=yes state=directory
+
+- name: download init script
+  get_url: url=https://gist.githubusercontent.com/thisismitch/8b15ac909aed214ad04a/raw/fc5025c3fc499ad8262aff34ba7fde8c87ead7c0/kibana-4.x-init dest=/etc/init.d/kibana mode=0755
+
+- name: download default script
+  get_url: url=https://gist.githubusercontent.com/thisismitch/8b15ac909aed214ad04a/raw/fc5025c3fc499ad8262aff34ba7fde8c87ead7c0/kibana-4.x-default dest=/etc/default/kibana
+
+- name: configure Kibana
+  lineinfile: "dest=/opt/kibana/config/kibana.yml regexp='{{ item.regexp }}' line='{{ item.line }}' state=present"
+  with_items:
+    - { regexp: '^host', line: 'host: "localhost"' }
+  notify: restart kibana
+
+- name: make sure kibana has been started
+  service: name=kibana state=started enabled=yes

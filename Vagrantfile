@@ -26,6 +26,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     elk.vm.hostname = "log-elk.dev"
     elk.vm.box = "deb/wheezy-amd64"
     elk.vm.network "private_network", ip: "192.168.60.6"
+    config.vm.provider "virtualbox" do |vb|
+      vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      vb.customize ["modifyvm", :id, "--memory", "1024"]
+      vb.customize ["modifyvm", :id, "--cpus", "2"]
+    end
   end
 
 end

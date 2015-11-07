@@ -1,4 +1,14 @@
 ---
+- hosts: multi
+  sudo: yes
+
+  tasks:
+    - name: Install tools
+      apt: name={{ item }}
+      with_items:
+        - vim
+        - htop
+
 - hosts: elk
   sudo: yes
 
@@ -167,6 +177,9 @@
 
     - name: Install Logstash | install forwarder
       apt: name=logstash-forwarder
+
+    - name: Install Logstash | ensure that certificate target folder exists
+      file: path=/etc/pki/tls/certs state=directory
 
     - name: Install Logstash | copy server certificate
       copy: src=special/logstash-forwarder.crt dest=/etc/pki/tls/certs/logstash-forwarder.crt
